@@ -8,5 +8,11 @@
 // layout file, like app/views/layouts/application.html.erb
 
 import utility from './common/utility';
+import { createNewReference } from './widgets/reference';
+
+
 window.utility = utility;
 window.utility.delete = utility.del;
+
+window.createNewReference = createNewReference;
+

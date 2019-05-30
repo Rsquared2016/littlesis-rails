@@ -1,7 +1,11 @@
-<%#= javascript_pack_tag 'application' %>
-<%= javascript_pack_tag 'hello_react' %>
 <p>admin test page</p>
 
+<div id="test-ref"></div>
 
+<script>
+ window.addEventListener('DOMContentLoaded', function() {
+   createNewReference('test-ref');
+ });
+</script>
 
 
