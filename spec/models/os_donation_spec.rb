@@ -30,7 +30,6 @@ describe OsDonation, type: :model do
     end
 
     describe 'reference_source' do
-
       it 'returns general search link if microfilm is nil' do
         expect(OsDonation.new.reference_source)
           .to eql 'http://www.fec.gov/finance/disclosure/advindsea.shtml'
@@ -39,7 +38,6 @@ describe OsDonation, type: :model do
       it 'returns link to fec img' do
         expect(os_d.reference_source).to eql 'http://docquery.fec.gov/cgi-bin/fecimg/?123'
       end
-
     end
   end
 end

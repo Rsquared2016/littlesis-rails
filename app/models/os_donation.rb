@@ -16,10 +16,6 @@ class OsDonation < ApplicationRecord
     "FEC Filing #{microfilm}"
   end
 
-  def reference_source
-    reference_url
-  end
-
   def reference_url
     if microfilm.nil?
       'http://www.fec.gov/finance/disclosure/advindsea.shtml'
@@ -27,4 +23,6 @@ class OsDonation < ApplicationRecord
       "http://docquery.fec.gov/cgi-bin/fecimg/?#{microfilm}"
     end
   end
+
+  alias reference_source reference_url
 end
