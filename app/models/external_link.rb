@@ -3,9 +3,9 @@
 class ExternalLink < ApplicationRecord
   belongs_to :entity
 
-  has_paper_trail on:  %i[create destroy update],
+  has_paper_trail on: %i[create destroy update],
                   meta: { entity1_id: :entity_id },
-                  if: ->(el) { el. editable? }
+                  if: ->(el) { el.editable? }
 
   # 1 -> sec
   # 2 -> wikipedia

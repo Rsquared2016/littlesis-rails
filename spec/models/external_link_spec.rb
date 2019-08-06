@@ -11,7 +11,7 @@ describe ExternalLink, type: :model do
     expect(build(:wikipedia_external_link).editable?).to be true
   end
 
-  context 'sec links' do
+  describe 'sec links' do
     let(:el) { build(:sec_external_link) }
 
     describe '#url' do
@@ -21,8 +21,9 @@ describe ExternalLink, type: :model do
     end
   end
 
-  context 'wikipedia links' do
+  describe 'wikipedia links' do
     let(:url) { 'https://en.wikipedia.org/wiki/Ruby_(programming_language)' }
+
     it 'can handles input of wikipedia links' do
       el = build(:wikipedia_external_link, link_id: url)
       el.validate
@@ -33,8 +34,8 @@ describe ExternalLink, type: :model do
   describe 'twitter links' do
     context 'with twitter url' do
       let(:url) { 'https://twitter.com/walmArt' }
-      
-      specify do 
+
+      specify do
         el = build(:twitter_external_link, link_id: url)
         el.validate
         expect(el.link_id).to eql 'walmArt'

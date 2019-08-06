@@ -67,17 +67,15 @@ namespace :opensecrets do
 
   desc 'Find missing candidates'
   task missing_candidates: :environment do
-    sql = "SELECT DISTINCT recipid from os_donations where recipid like 'N%'"
-    recipids = ApplicationRecord.connection.execute(sql)
+    recipids = OsDonation.distinct_recipids
 
     found = 0
     not_found = 0
     found_in_os = 0
 
-    recipids.each do |recpid|
-      id = recpid[0]
+    recipids.each do |recipid|
       elected = ElectedRepresentative.includes(:entity)
-                  .find_by(crp_id: id, entity: { is_deleted: false })
+                  .find_by(crp_id: recipid, entity: { is_deleted: false })
 
       unless elected.nil?
         found += 1
@@ -85,14 +83,14 @@ namespace :opensecrets do
       end
 
       candidate = PoliticalCandidate.includes(:entity)
-                    .find_by(crp_id: id, entity: { is_deleted: false })
+                    .find_by(crp_id: recipid, entity: { is_deleted: false })
 
       unless candidate.nil?
         found += 1
         next
       end
 
-      os_candidate = OsCandidate.find_by(crp_id: id)
+      os_candidate = OsCandidate.find_by(crp_id: recipid)
       if os_candidate.nil?
         printf("Could not find candidate in OsCandidate with id: %s \n", id)
         not_found += 1
