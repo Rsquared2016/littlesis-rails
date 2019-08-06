@@ -40,4 +40,18 @@ describe OsDonation, type: :model do
       end
     end
   end
+
+  describe 'distinct_recipids' do
+    let(:recipid_1) { 'N100' }
+    let(:recipid_2) { 'N200' }
+    
+    before do
+      2.times { create(:os_donation, recipid: recipid_1) }
+      create(:os_donation, recipid: recipid_2)
+    end
+
+    specify do
+      expect(OsDonation.distinct_recipids).to eq [recipid_1, recipid_2]
+    end
+  end
 end

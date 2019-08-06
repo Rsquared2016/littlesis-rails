@@ -25,4 +25,11 @@ class OsDonation < ApplicationRecord
   end
 
   alias reference_source reference_url
+
+
+  def self.distinct_recipids
+    execute_sql(
+      "SELECT DISTINCT recipid FROM os_donations WHERE recipid LIKE 'N%'"
+    ).map(&:first)
+  end
 end
