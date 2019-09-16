@@ -44,6 +44,7 @@
 .pry_history
 .irb-history
 .gem
+NOTES.md
 
 # Generated test error files
 spec/testdata/*_errors.txt
