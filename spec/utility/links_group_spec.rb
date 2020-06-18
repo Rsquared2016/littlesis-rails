@@ -23,7 +23,7 @@ describe LinksGroup do
     end
 
     it 'orders the data in the default order' do
-      expect(links_group.links).to eq [[link2], [link1]]
+      expect(links_group.links).to eq [[link1], [link2]]
     end
   end
 
@@ -52,50 +52,83 @@ describe LinksGroup do
     let(:links) { SortedLinks.new(person) }
     let(:links_group) { links.send(:business_positions) }
 
-    before do
-      create(:position_relationship, entity: person, related: org, start_date: '2009-01-23', end_date: '2010-01-01')
-      create(:position_relationship, entity: person, related: org, start_date: '2010-10-01', end_date: '2011-10-01')
-      create(:position_relationship, entity: person, related: org, start_date: '2013-11-01', end_date: '2019-10-01')
-    end
+    context 'with relationships differentiated by temporal status' do
+      let!(:past_endless) do
+        create(:position_relationship, entity: person, related: org, notes: 'past', is_current: false)
+      end
 
-    it 'returns the links at the second level of a two-dimentional array' do
-      expect(links_group.links).to be_a Array
-      expect(links_group.links.count).to be 1
-      expect(links_group.links[0]).to be_a Array
-      expect(links_group.links[0].count).to be 3
-    end
+      let!(:current_endless) do
+        create(:position_relationship, entity: person, related: org, notes: 'current', is_current: true)
+      end
 
-    context 'with multiple links to the same entity' do
-      it 'sorts the links by date' do
-        expect(links_group.links[0].map { |l| l.relationship.start_date })
-          .to match %w[2013-11-01 2010-10-01 2009-01-23]
+      let!(:unknown_to_end) do
+        create(:position_relationship, entity: person, related: org, notes: 'unknown', is_current: nil)
+      end
+
+      it 'sorts correctly by temporal status' do
+        expect(links_group.links[0].map {|l| l.relationship.notes })
+          .to match %w(current unknown past)
       end
     end
 
-    context 'with an older but still-current link' do
-      before do
-        create(:position_relationship, entity: person, related: org, start_date: '2000-04-18', end_date: nil)
+    context 'with relationships differentiated by end date' do
+      let!(:endless) do
+        create(:position_relationship, entity: person, related: org, notes: 'endless', end_date: nil)
       end
 
-      it 'sorts the links by date' do
-        expect(links_group.links[0].map { |l| l.relationship.start_date })
-          .to match %w[2000-04-18 2013-11-01 2010-10-01 2009-01-23]
+      let!(:ending) do
+        create(:position_relationship, entity: person, related: org, notes: 'ending', end_date: 1.year.from_now.strftime('%Y-%m-%d'))
+      end
+
+      let!(:ended) do
+        create(:position_relationship, entity: person, related: org, notes: 'ended', end_date: 1.year.ago.strftime('%Y-%m-%d'))
+      end
+
+      it 'sorts correctly by end date' do
+        expect(links_group.links[0].map {|l| l.relationship.notes })
+          .to match %w(endless ending ended)
       end
     end
 
-    context 'with a date-less link' do
-      before do
-        create(:position_relationship, entity: person, related: org, start_date: nil, updated_at: '2020-05-10')
-        create(:position_relationship, entity: person, related: org, start_date: '2019-10-01')
+    context 'with relationships differentiated by start date' do
+      let!(:newest) do
+        create(:position_relationship, entity: person, related: org, notes: 'newest', start_date:  1.year.ago.strftime('%Y-%m-%d'))
       end
 
-      it "doesn't raise an exception" do
-        expect { links_group.links }.not_to raise_error
+      let!(:older) do
+        create(:position_relationship, entity: person, related: org, notes: 'older', start_date: 2.years.ago.strftime('%Y-%m-%d'))
       end
 
-      it 'sorts by updated timestamp instead' do
-        expect(links_group.links[0].map { |l| l.relationship.start_date })
-          .to match [nil, '2019-10-01', '2013-11-01', '2010-10-01', '2009-01-23']
+      let!(:oldest) do
+        create(:position_relationship, entity: person, related: org, notes: 'oldest', start_date: 3.years.ago.strftime('%Y-%m-%d'))
+      end
+
+      it 'sorts correctly by start date' do
+        expect(links_group.links[0].map {|l| l.relationship.notes })
+          .to match %w(newest older oldest)
+      end
+    end
+
+    context 'with mixed sorting logics' do
+      let!(:past_endless) do
+        create(:position_relationship, entity: person, related: org, notes: 'past_endless', is_current: false)
+      end
+
+      let!(:current_to_end) do
+        create(:position_relationship, entity: person, related: org, notes: 'current_to_end', is_current: true, end_date: 1.year.from_now.strftime('%Y-%m-%d'))
+      end
+
+      let!(:unknown_to_end) do
+        create(:position_relationship, entity: person, related: org, notes: 'unknown_to_end', is_current: nil, end_date: 1.year.from_now.strftime('%Y-%m-%d'))
+      end
+
+      let!(:unknown_dateless) do
+        create(:position_relationship, entity: person, related: org, notes: 'unknown_dateless', is_current: nil)
+      end
+
+      it 'sorts the links correctly' do
+        expect(links_group.order(links_group.links[0]).map { |l| l.relationship.notes })
+          .to match %w(current_to_end unknown_dateless unknown_to_end past_endless)
       end
     end
   end

@@ -10,6 +10,7 @@ class LinksGroup
     @heading = heading
     @category_id = links.empty? ? nil : links[0].category_id
     @links = group_by_entity(order(links))
+
     # In situations where the array size does not represent the total count, i.e. queries with LIMIT
     if count.present?
       @count = count
@@ -27,7 +28,7 @@ class LinksGroup
     when 5
       sort_by_amount(links)
     else
-      sorted_current_links(links) + sorted_ended_links(links)
+      sort_by_date(links)
     end
   end
 
@@ -37,18 +38,6 @@ class LinksGroup
   # same entity are grouped together
   def group_by_entity(links)
     links.group_by(&:entity2_id).values
-  end
-
-  def sorted_current_links(links)
-    links
-      .select { |l| l.relationship.end_date.blank? }
-      .sort_by { |l| l.relationship.start_date || l.relationship.updated_at.to_s }.reverse
-  end
-
-  def sorted_ended_links(links)
-    links
-      .select { |l| l.relationship.end_date.present? }
-      .sort_by { |l| l.relationship.start_date || l.relationship.updated_at.to_s }.reverse
   end
 
   def sort_by_related_link_count(links)
@@ -64,6 +53,40 @@ class LinksGroup
       else
         -1
       end
+    end
+  end
+
+  def status_map
+    {
+      current: 2,
+      unknown: 1,
+      past: 0
+    }
+  end
+
+  def end_date_comparer(d)
+    if d.blank?
+      1
+    else
+      0
+    end
+  end
+
+  def sort_by_date(links)
+    links.sort do |a, b|
+        [
+          status_map[b.relationship.temporal_status],
+          end_date_comparer(b.relationship.end_date),
+          b.relationship.start_date.to_s,
+          b.relationship.end_date.to_s,
+          b.relationship.updated_at
+        ] <=> [
+          status_map[a.relationship.temporal_status],
+          end_date_comparer(a.relationship.end_date),
+          a.relationship.start_date.to_s,
+          a.relationship.end_date.to_s,
+          a.relationship.updated_at
+        ]
     end
   end
 end
