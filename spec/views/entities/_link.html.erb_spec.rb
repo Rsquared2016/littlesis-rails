@@ -37,7 +37,9 @@ describe "entities/link", type: :view do
   end
 
   context 'when relationship has notes' do
-    let(:relationship_notes) { 'foobar' }
+    let(:rel_between_entity_and_other_person) do
+      build(:generic_relationship, entity: entity, related: other_person, notes: 'foobar')
+    end
 
     specify do
       expect(rendered).to match(/Affiliation \(past\)\*/)
